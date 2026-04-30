@@ -13,6 +13,7 @@
     <link rel="apple-touch-icon" href="Logo_trang.png">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
@@ -193,17 +194,21 @@
         }
 
         // BIỂU ĐỒ PHÂN TÍCH THẬT
+  // BIỂU ĐỒ PHÂN TÍCH THẬT - CÓ SỐ LIỆU
         function renderPieChart() {
             if(pieChart) pieChart.destroy();
             
+            // Kích hoạt thư viện hiển thị số
+            Chart.register(ChartDataLabels);
+
             let stats = globalData.brand_stats;
-            // Dữ liệu lấy từ Apps Script
             let labels = ['Casio', 'Fujifilm', 'Sony', 'Instax', 'Khác'];
             let dataValues = [stats['Casio'], stats['Fujifilm'], stats['Sony'], stats['Instax'], stats['Khác']];
             
-            // Lọc ra dòng máy được thuê nhiều nhất
+            // Lọc ra dòng máy được thuê nhiều nhất và số lượt
             let maxIndex = dataValues.indexOf(Math.max(...dataValues));
             let bestBrand = labels[maxIndex];
+            let maxCount = dataValues[maxIndex];
 
             pieChart = new Chart(document.getElementById('chartPie'), {
                 type: 'doughnut',
@@ -212,17 +217,31 @@
                     datasets: [{
                         data: dataValues,
                         backgroundColor: ['#ffcd56', '#ff6384', '#36a2eb', '#ff9f40', '#4bc0c0'],
-                        borderWidth: 0
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
                     }]
                 },
-                options: { plugins: { legend: { position: 'bottom' } }, cutout: '65%' }
+                options: { 
+                    plugins: { 
+                        legend: { position: 'bottom' },
+                        // Cấu hình hiển thị con số
+                        datalabels: {
+                            color: '#ffffff',
+                            font: { weight: 'bold', size: 14 },
+                            formatter: function(value) {
+                                return value > 0 ? value : ''; // Ẩn số 0 cho đỡ rối mắt
+                            }
+                        }
+                    }, 
+                    cutout: '60%' 
+                }
             });
 
-            // Hiển thị lời khuyên phân tích
+            // Hiển thị lời khuyên phân tích kèm số liệu cụ thể
             document.getElementById('analytics-insight').innerHTML = `
                 <i class="fas fa-crown" style="font-size: 2.5rem; color: #ffcd56; margin-bottom: 10px;"></i>
                 <h3 style="color: var(--dark-text); margin-bottom: 5px;">${bestBrand} đang dẫn đầu!</h3>
-                <p style="color: #adb5bd; font-size: 0.9rem;">Đây là dòng máy mang lại nhiều lượt thuê nhất trong lịch sử cửa hàng.</p>
+                <p style="color: #adb5bd; font-size: 0.9rem;">Với <b>${maxCount} lượt thuê</b>, đây là dòng máy mang lại nhiều đơn hàng nhất trong lịch sử cửa hàng.</p>
             `;
         }
 
