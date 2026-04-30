@@ -7,10 +7,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#ffffff">
-    
-    <title>Lolipop.camera Dashboard</title>
-    <link rel="icon" type="image/jpeg" href="Logo_trang.png">
+    <title>Lolipop Dashboard</title>
+    <link rel="icon" type="image/png" href="Logo_trang.png">
     <link rel="apple-touch-icon" href="Logo_trang.png">
+
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -22,103 +22,130 @@
             --dark-text: #343a40; --card-bg: #ffffff; --main-bg: #f8f9fa;
             --border-color: #e9ecef; --shadow-premium: 0 8px 16px rgba(0,0,0,0.05);
         }
-        
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; -webkit-tap-highlight-color: transparent; }
-        
-        /* Chuyển Body thành khung App thực thụ */
-        body { 
-            background-color: var(--main-bg); 
-            display: flex; 
-            flex-direction: column; 
-            height: 100vh; 
-            width: 100vw; 
-            overflow: hidden; 
-        }
+        body { background-color: var(--main-bg); display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden; }
 
-        .header { 
-            padding: 15px 20px; 
-            padding-top: max(15px, env(safe-area-inset-top)); /* Dành cho tai thỏ iPhone */
-            display: flex; justify-content: space-between; align-items: center; 
-            border-bottom: 1px solid var(--border-color); background: white; 
+        /* SPLASH SCREEN */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #f6f4f1; display: flex; justify-content: center; align-items: center;
+            z-index: 10000; transition: opacity 0.8s ease;
         }
+        .splash-content { text-align: center; }
+        .rotating-logo { width: 120px; height: auto; border-radius: 50%; box-shadow: 0 10px 20px rgba(0,0,0,0.05); animation: rotate-logo 2s linear infinite; }
+        @keyframes rotate-logo { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        body.loading { overflow: hidden; }
+
+        .header { padding: 15px 20px; padding-top: max(15px, env(safe-area-inset-top)); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); background: white; z-index: 10; }
         .brand { font-weight: 700; font-size: 1.2rem; }
         
+        .footer-nav { height: 65px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--border-color); background: white; padding-bottom: env(safe-area-inset-bottom); z-index: 10; }
+        .nav-item { text-align: center; color: #adb5bd; font-size: 0.7rem; cursor: pointer; flex: 1; display: flex; flex-direction: column; gap: 4px; transition: 0.2s; }
+        .nav-item.active, .nav-item:hover { color: var(--primary-blue); }
+        .nav-item i { font-size: 1.2rem; }
+
         .page { display: none; flex: 1; overflow-y: auto; padding: 15px; background-color: var(--main-bg); }
         .page.active { display: block; }
-
         .section-title { font-weight: 700; font-size: 1rem; margin-bottom: 15px; color: var(--dark-text); }
         .card { background: white; border-radius: 20px; padding: 15px; box-shadow: var(--shadow-premium); margin-bottom: 15px; }
 
         .global-filter { background: var(--card-bg); border-radius: 12px; padding: 10px; margin-bottom: 15px; box-shadow: var(--shadow-premium); display: flex; align-items: center; }
         .global-filter select { width: 100%; border: none; font-weight: 700; color: var(--primary-blue); outline: none; appearance: none; cursor: pointer; text-align: center;}
         
-        .kpi-container { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 20px; }
-        .kpi-card { background: white; padding: 12px 5px; border-radius: 15px; box-shadow: var(--shadow-premium); width: 32%; text-align: center; }
+        .kpi-container { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 20px; }
+        .kpi-card { background: white; padding: 12px 5px; border-radius: 15px; box-shadow: var(--shadow-premium); flex: 1; text-align: center; }
         .kpi-label { font-size: 0.7rem; color: #adb5bd; font-weight: 600; text-transform: uppercase; margin-bottom: 5px;}
         .kpi-value { font-size: 1.1rem; font-weight: 700; }
-        .kpi-growth { font-size: 0.7rem; font-weight: 600; padding: 3px 6px; border-radius: 8px; margin-top: 5px; display: inline-block;}
+        .kpi-growth { font-size: 0.75rem; font-weight: 600; padding: 3px 6px; border-radius: 8px; margin-top: 5px; display: inline-block;}
         .up { color: var(--success-green); background: rgba(40, 167, 69, 0.1); }
         .down { color: var(--danger-red); background: rgba(220, 53, 69, 0.1); }
 
-        .device-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+        .dashboard-bottom-row { display: flex; flex-direction: column; gap: 15px; }
+
+        .device-item, .customer-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+        .device-item:last-child, .customer-item:last-child { border-bottom: none; }
         .tag { font-size: 0.7rem; padding: 2px 8px; border-radius: 5px; background: #eee; font-weight: 600; }
         .tag-casio { background: #ffcd56; color: #856404; }
         .tag-fuji { background: #ff6384; color: white; }
         .tag-sony { background: #36a2eb; color: white; }
-        .tag-instax { background: #995321; color: white; }
-
-        .customer-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
         .freq-badge { background: var(--primary-blue); color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; }
 
-        .footer-nav { 
-            height: 65px; display: flex; justify-content: space-around; align-items: center; 
-            border-top: 1px solid var(--border-color); background: white; 
-            padding-bottom: env(safe-area-inset-bottom); /* Dành cho dải vuốt iPhone */
+        /* GIAO DIỆN LAPTOP */
+        @media (min-width: 768px) {
+            body { grid-template-columns: 100px 1fr; grid-template-rows: 70px 1fr; display: grid; grid-template-areas: "sidebar header" "sidebar main"; }
+            .header { grid-area: header; padding: 0 40px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+            .footer-nav { grid-area: sidebar; height: 100vh; flex-direction: column; justify-content: flex-start; padding-top: 40px; gap: 40px; border-top: none; border-right: 1px solid var(--border-color); }
+            .nav-item { flex: none; font-size: 0.8rem; }
+            .nav-item i { font-size: 1.5rem; margin-bottom: 5px; }
+            .page { grid-area: main; padding: 30px 40px; }
+            .page-container { max-width: 1200px; margin: 0 auto; width: 100%; }
+            .global-filter { max-width: 300px; margin-left: auto; }
+            .kpi-container { gap: 20px; }
+            .kpi-card { padding: 25px 15px; }
+            .kpi-value { font-size: 1.5rem; }
+            .dashboard-bottom-row { flex-direction: row; align-items: stretch; gap: 20px; }
+            .dashboard-bottom-row .card:nth-child(1) { flex: 1.5; margin-bottom: 0; }
+            .dashboard-bottom-row .card:nth-child(2) { flex: 1; margin-bottom: 0; max-height: 400px; overflow-y: auto; }
+            #page-analytics .card:first-of-type { max-width: 600px; margin: 0 auto 20px auto; }
+            #page-orders .card, #page-devices .card { max-width: 800px; margin: 0 auto; }
         }
-        .nav-item { text-align: center; color: #adb5bd; font-size: 0.7rem; cursor: pointer; flex: 1; display: flex; flex-direction: column; gap: 4px; }
-        .nav-item.active { color: var(--primary-blue); }
-        .nav-item i { font-size: 1.2rem; }
     </style>
 </head>
-<body>
-    <header class="header"><i class="fas fa-bars"></i><span class="brand">Lolipop.camera Dashboard</span><i class="far fa-user"></i></header>
+<body class="loading">
+
+    <div id="splash-screen">
+        <div class="splash-content">
+            <img src="Logo_trang.png" class="rotating-logo" alt="Lolipop Logo" onerror="this.src='https://via.placeholder.com/120?text=Logo'">
+            <p style="margin-top: 20px; color: #adb5bd; font-weight: 500; letter-spacing: 1px;">ĐANG TẢI DỮ LIỆU...</p>
+        </div>
+    </div>
+
+    <header class="header"><i class="fas fa-bars"></i><span class="brand">Lolipop.camera</span><i class="far fa-user"></i></header>
 
     <main id="page-dash" class="page active">
-        <div class="global-filter"><select id="smartFilter" onchange="applySmartFilter()"></select></div>
-        <div class="kpi-container">
-            <div class="kpi-card" id="kpi-sales"><span class="kpi-label">Doanh Thu</span><div class="kpi-value">0</div><div class="kpi-growth up">0%</div></div>
-            <div class="kpi-card" id="kpi-profit"><span class="kpi-label">Lợi Nhuận</span><div class="kpi-value">0</div><div class="kpi-growth up">0%</div></div>
-            <div class="kpi-card" id="kpi-orders"><span class="kpi-label">Đơn Hàng</span><div class="kpi-value">0</div><div class="kpi-growth up">0%</div></div>
-        </div>
-        <div class="card"><div class="section-title">Xu hướng doanh thu</div><canvas id="chartDash" height="200"></canvas></div>
-        <div class="card"><div class="section-title">Đơn mới nhất</div><ul id="list-recent"></ul></div>
-    </main>
-
-    <main id="page-devices" class="page">
-        <div class="section-title">Quản lý Thiết bị (7)</div>
-        <div class="card" id="list-devices"></div>
-    </main>
-
-    <main id="page-orders" class="page">
-        <div class="section-title">Tần suất Khách thuê</div>
-        <div class="card" id="list-customers"></div>
-    </main>
-
-    <main id="page-analytics" class="page">
-        <div class="section-title">Phân tích dòng máy bán chạy</div>
-        <div class="card"><canvas id="chartPie" height="300"></canvas></div>
-        <div class="card" id="analytics-insight" style="text-align: center; padding: 20px;">
+        <div class="page-container">
+            <div class="global-filter"><select id="smartFilter" onchange="applySmartFilter()"></select></div>
+            <div class="kpi-container">
+                <div class="kpi-card" id="kpi-sales"><span class="kpi-label">Doanh Thu</span><div class="kpi-value">0</div><div class="kpi-growth up">0%</div></div>
+                <div class="kpi-card" id="kpi-profit"><span class="kpi-label">Lợi Nhuận</span><div class="kpi-value">0</div><div class="kpi-growth up">0%</div></div>
+                <div class="kpi-card" id="kpi-orders"><span class="kpi-label">Đơn Hàng</span><div class="kpi-value">0</div><div class="kpi-growth up">0%</div></div>
             </div>
+            
+            <div class="dashboard-bottom-row">
+                <div class="card" style="display: flex; flex-direction: column;">
+                    <div class="section-title">Xu hướng doanh thu</div>
+                    <div style="position: relative; height: 260px; width: 100%;">
+                        <canvas id="chartDash"></canvas>
+                    </div>
+                </div>
+                <div class="card"><div class="section-title">Đơn hoàn thành gần nhất</div><ul id="list-recent"></ul></div>
+            </div>
+        </div>
     </main>
+
+    <main id="page-devices" class="page"><div class="page-container"><div class="section-title">Quản lý Thiết bị (7)</div><div class="card" id="list-devices"></div></div></main>
+    <main id="page-orders" class="page"><div class="page-container"><div class="section-title">Tần suất Khách thuê</div><div class="card" id="list-customers"></div></div></main>
+    <main id="page-analytics" class="page"><div class="page-container"><div class="section-title" style="text-align: center;">Phân tích dòng máy bán chạy</div><div class="card"><canvas id="chartPie" height="250"></canvas></div><div class="card" id="analytics-insight" style="text-align: center; padding: 20px;"></div></div></main>
 
     <footer class="footer-nav">
-        <div class="nav-item active" onclick="showPage('dash', this)"><i class="fas fa-columns"></i>Dash</div>
-        <div class="nav-item" onclick="showPage('devices', this)"><i class="fas fa-camera"></i>Thiết bị</div>
-        <div class="nav-item" onclick="showPage('orders', this)"><i class="fas fa-file-invoice-dollar"></i>Đơn</div>
-        <div class="nav-item" onclick="showPage('analytics', this)"><i class="fas fa-chart-pie"></i>Phân tích</div>
+        <div class="nav-item active" onclick="showPage('dash', this)"><i class="fas fa-columns"></i><span>Dash</span></div>
+        <div class="nav-item" onclick="showPage('devices', this)"><i class="fas fa-camera"></i><span>Thiết bị</span></div>
+        <div class="nav-item" onclick="showPage('orders', this)"><i class="fas fa-file-invoice-dollar"></i><span>Đơn</span></div>
+        <div class="nav-item" onclick="showPage('analytics', this)"><i class="fas fa-chart-pie"></i><span>Phân tích</span></div>
     </footer>
 
     <script>
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                setTimeout(function() {
+                    splash.style.display = 'none';
+                    document.body.classList.remove('loading');
+                }, 800);
+            }, 5000);
+        });
+
         let globalData = null;
         let myChart = null;
         let pieChart = null;
@@ -136,28 +163,24 @@
         function renderData(data) {
             globalData = data;
             
-            // 1. Dash Filter
             let filter = document.getElementById('smartFilter');
             filter.innerHTML = '<option value="all">📊 TỔNG QUAN TẤT CẢ</option>';
             data.monthly_data.forEach(m => { filter.innerHTML += `<option value="${m.name}">${m.name}</option>`; });
             filter.value = data.monthly_data[data.monthly_data.length-1].name;
 
-            // 2. Recent
             let recentList = document.getElementById('list-recent');
             recentList.innerHTML = '';
             data.recent_activity.forEach(item => {
                 recentList.innerHTML += `<li class="device-item"><div><b>${item.product}</b><br><small>${item.customer}</small></div><div style="color:var(--success-green);font-weight:700">+${formatVND(item.value)}</div></li>`;
             });
 
-            // 3. Devices
             let devList = document.getElementById('list-devices');
             devList.innerHTML = '';
             data.devices.forEach(d => {
-                let tagClass = d.brand.toLowerCase() === 'casio' ? 'tag-casio' : (d.brand.toLowerCase() === 'fujifilm' ? 'tag-fuji' : (d.brand.toLowerCase() === 'sony' ? 'tag-sony' : (d.brand.toLowerCase() === 'instax' ? 'tag-instax' : '')));
+                let tagClass = d.brand.toLowerCase() === 'casio' ? 'tag-casio' : (d.brand.toLowerCase() === 'fujifilm' ? 'tag-fuji' : (d.brand.toLowerCase() === 'sony' ? 'tag-sony' : ''));
                 devList.innerHTML += `<div class="device-item"><div><b>${d.name}</b><br><small>${d.type}</small></div><span class="tag ${tagClass}">${d.brand}</span></div>`;
             });
 
-            // 4. Customers
             let custList = document.getElementById('list-customers');
             custList.innerHTML = '';
             data.customer_frequency.forEach(c => {
@@ -167,18 +190,66 @@
             applySmartFilter();
         }
 
+        // TÍNH TOÁN SO SÁNH PHẦN TRĂM XANH/ĐỎ
         function applySmartFilter() {
             let val = document.getElementById('smartFilter').value;
-            let d = val === 'all' ? globalData.monthly_data : globalData.monthly_data.filter(m => m.name === val);
-            
+            let isAll = (val === 'all');
             let tRev = 0, tProf = 0, tOrd = 0;
-            d.forEach(m => { tRev += m.rev; tProf += m.profit; tOrd += m.orders; });
+            let pRev = 0, pProf = 0, pOrd = 0; 
+            
+            if (isAll) {
+                globalData.monthly_data.forEach(m => { tRev += m.rev; tProf += m.profit; tOrd += m.orders; });
+            } else {
+                let idx = globalData.monthly_data.findIndex(m => m.name === val);
+                if (idx !== -1) {
+                    tRev = globalData.monthly_data[idx].rev;
+                    tProf = globalData.monthly_data[idx].profit;
+                    tOrd = globalData.monthly_data[idx].orders;
 
-            document.querySelector('#kpi-sales .kpi-value').innerText = formatVND(tRev);
-            document.querySelector('#kpi-profit .kpi-value').innerText = formatVND(tProf);
-            document.querySelector('#kpi-orders .kpi-value').innerText = tOrd;
+                    // Lấy số liệu tháng liền trước (nếu có) để so sánh
+                    if (idx > 0) {
+                        pRev = globalData.monthly_data[idx-1].rev;
+                        pProf = globalData.monthly_data[idx-1].profit;
+                        pOrd = globalData.monthly_data[idx-1].orders;
+                    }
+                }
+            }
 
-            renderChart(val === 'all' ? globalData.monthly_data : d);
+            updateKPICard('kpi-sales', tRev, pRev, isAll, true);
+            updateKPICard('kpi-profit', tProf, pProf, isAll, true);
+            updateKPICard('kpi-orders', tOrd, pOrd, isAll, false);
+
+            // Cập nhật biểu đồ đường: Hiển thị mốc thời gian từ đầu cho đến tháng đang chọn
+            let chartData = isAll ? globalData.monthly_data : globalData.monthly_data.slice(0, globalData.monthly_data.findIndex(m => m.name === val) + 1);
+            renderChart(chartData);
+        }
+
+        function updateKPICard(id, current, prev, isAll, isCurrency) {
+            let el = document.getElementById(id);
+            el.querySelector('.kpi-value').innerText = isCurrency ? formatVND(current) : current;
+            let growthEl = el.querySelector('.kpi-growth');
+
+            if (isAll) {
+                growthEl.innerHTML = `<i class="fas fa-chart-line"></i> Toàn bộ`;
+                growthEl.className = `kpi-growth up`;
+                growthEl.style.background = 'rgba(40, 167, 69, 0.1)';
+                growthEl.style.color = 'var(--success-green)';
+            } else {
+                if (prev === 0 && current === 0) {
+                    growthEl.innerHTML = `<i class="fas fa-minus"></i> 0%`;
+                    growthEl.className = `kpi-growth`;
+                    growthEl.style.background = '#e9ecef';
+                    growthEl.style.color = '#adb5bd';
+                } else {
+                    let percent = prev === 0 ? 100 : ((current - prev) / prev) * 100;
+                    let isUp = current >= prev;
+                    
+                    growthEl.innerHTML = `<i class="fas fa-arrow-${isUp ? 'up' : 'down'}"></i> ${Math.abs(percent).toFixed(1)}%`;
+                    growthEl.className = `kpi-growth ${isUp ? 'up' : 'down'}`;
+                    growthEl.style.background = '';
+                    growthEl.style.color = '';
+                }
+            }
         }
 
         function renderChart(chartData) {
@@ -189,23 +260,19 @@
                     labels: chartData.map(m => m.name.replace('Tháng ','T')),
                     datasets: [{ label: 'Doanh thu', data: chartData.map(m => m.rev), borderColor: '#007bff', tension: 0.4, fill: true, backgroundColor: 'rgba(0,123,255,0.05)', pointRadius: 3 }]
                 },
-                options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
+                // maintainAspectRatio: false giúp biểu đồ KHÔNG bị tràn dài xuống dưới
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
             });
         }
 
-        // BIỂU ĐỒ PHÂN TÍCH THẬT
-  // BIỂU ĐỒ PHÂN TÍCH THẬT - CÓ SỐ LIỆU
         function renderPieChart() {
             if(pieChart) pieChart.destroy();
-            
-            // Kích hoạt thư viện hiển thị số
             Chart.register(ChartDataLabels);
 
             let stats = globalData.brand_stats;
             let labels = ['Casio', 'Fujifilm', 'Sony', 'Instax', 'Khác'];
             let dataValues = [stats['Casio'], stats['Fujifilm'], stats['Sony'], stats['Instax'], stats['Khác']];
             
-            // Lọc ra dòng máy được thuê nhiều nhất và số lượt
             let maxIndex = dataValues.indexOf(Math.max(...dataValues));
             let bestBrand = labels[maxIndex];
             let maxCount = dataValues[maxIndex];
@@ -217,38 +284,33 @@
                     datasets: [{
                         data: dataValues,
                         backgroundColor: ['#ffcd56', '#ff6384', '#36a2eb', '#ff9f40', '#4bc0c0'],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
+                        borderWidth: 2, borderColor: '#ffffff'
                     }]
                 },
                 options: { 
+                    responsive: true, maintainAspectRatio: false,
                     plugins: { 
                         legend: { position: 'bottom' },
-                        // Cấu hình hiển thị con số
-                        datalabels: {
-                            color: '#ffffff',
-                            font: { weight: 'bold', size: 14 },
-                            formatter: function(value) {
-                                return value > 0 ? value : ''; // Ẩn số 0 cho đỡ rối mắt
-                            }
-                        }
-                    }, 
-                    cutout: '60%' 
+                        datalabels: { color: '#ffffff', font: { weight: 'bold', size: 14 }, formatter: function(value) { return value > 0 ? value : ''; } }
+                    }, cutout: '60%' 
                 }
             });
 
-            // Hiển thị lời khuyên phân tích kèm số liệu cụ thể
             document.getElementById('analytics-insight').innerHTML = `
                 <i class="fas fa-crown" style="font-size: 2.5rem; color: #ffcd56; margin-bottom: 10px;"></i>
                 <h3 style="color: var(--dark-text); margin-bottom: 5px;">${bestBrand} đang dẫn đầu!</h3>
-                <p style="color: #adb5bd; font-size: 0.9rem;">Với <b>${maxCount} lượt thuê</b>, đây là dòng máy mang lại nhiều đơn hàng nhất trong lịch sử cửa hàng.</p>
+                <p style="color: #adb5bd; font-size: 0.9rem;">Với <b>${maxCount} lượt thuê</b>, đây là dòng máy mang lại nhiều đơn hàng nhất.</p>
             `;
         }
 
-        // TỰ ĐỘNG LẤY DỮ LIỆU
-        // ĐỔI LINK NÀY THÀNH LINK CỦA BẠN NẾU LINK CŨ ĐÃ THAY ĐỔI NHÉ
+        // Link Apps Script
         fetch('https://script.google.com/macros/s/AKfycbwfQOd6vL2fPk2qlYW2GtfW8HHeTpn51yp3AUb4gP0lh9taZQ5fgkqkQCwnlNMFfYjZ/exec')
             .then(res => res.json()).then(data => renderData(data));
+        
+        setInterval(() => {
+            fetch('https://script.google.com/macros/s/AKfycbwfQOd6vL2fPk2qlYW2GtfW8HHeTpn51yp3AUb4gP0lh9taZQ5fgkqkQCwnlNMFfYjZ/exec')
+            .then(res => res.json()).then(data => renderData(data));
+        }, 30000);
     </script>
 </body>
 </html>
