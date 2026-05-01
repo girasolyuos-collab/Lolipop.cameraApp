@@ -13,8 +13,11 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Thêm 2 dòng này để cấp quyền Zoom và vuốt chạm -->
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     
     <style>
         :root {
@@ -89,6 +92,36 @@
             #page-analytics .card:first-of-type { max-width: 600px; margin: 0 auto 20px auto; }
             #page-orders .card, #page-devices .card { max-width: 800px; margin: 0 auto; }
         }
+        /* --- SIDEBAR MENU (NÚT 3 GẠCH) --- */
+        #sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1000; display: none; opacity: 0; transition: opacity 0.3s; }
+        #sidebar-menu { position: fixed; top: 0; left: -300px; width: 280px; height: 100vh; background: var(--card-bg); z-index: 1001; transition: left 0.3s ease; box-shadow: 2px 0 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+        #sidebar-menu.open { left: 0; }
+        .sidebar-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
+        .sidebar-header h3 { font-size: 1.1rem; color: var(--dark-text); }
+        .close-btn { font-size: 1.5rem; color: #adb5bd; cursor: pointer; }
+        .sidebar-content { padding: 15px 20px; flex: 1; overflow-y: auto; }
+        .sidebar-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; cursor: pointer; }
+        .item-info { display: flex; align-items: center; gap: 15px; font-weight: 500; color: var(--dark-text); }
+        .item-info i { font-size: 1.2rem; width: 20px; text-align: center; }
+        
+        /* Nút Toggle (Công tắc) */
+        .toggle-switch { width: 45px; height: 24px; background: #ced4da; border-radius: 12px; position: relative; transition: 0.3s; }
+        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.3s; }
+        .toggle-switch.on { background: var(--success-green); }
+        .toggle-switch.on::after { left: 23px; }
+
+        /* --- DARK MODE (CHẾ ĐỘ BAN ĐÊM) --- */
+        body.dark-theme {
+            --main-bg: #121212; --card-bg: #1e1e1e; --dark-text: #e0e0e0; 
+            --border-color: #2c2c2c; --shadow-premium: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        body.dark-theme .header, body.dark-theme .footer-nav { background: var(--card-bg); border-color: var(--border-color); }
+        body.dark-theme .card, body.dark-theme .kpi-card, body.dark-theme .global-filter select { background: var(--card-bg); color: var(--dark-text); }
+        body.dark-theme .device-item, body.dark-theme .customer-item { border-color: var(--border-color); }
+        body.dark-theme .device-title { color: #e0e0e0; }
+        body.dark-theme .device-sub { color: #888; }
+        body.dark-theme .tag { background: #333; color: #ccc; }
+        body.dark-theme .kpi-label { color: #888; }
     </style>
 </head>
 <body class="loading">
@@ -100,7 +133,69 @@
         </div>
     </div>
 
-    <header class="header"><i class="fas fa-bars"></i><span class="brand">Lolipop.camera</span><i class="far fa-user"></i></header>
+    <!-- Cấu trúc Menu Trượt (Sidebar) -->
+    <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <div id="sidebar-menu">
+        <div class="sidebar-header">
+            <h3>Cài đặt & Tiện ích</h3>
+            <i class="fas fa-times close-btn" onclick="toggleSidebar()"></i>
+        </div>
+        
+        <div class="sidebar-content">
+            <!-- Nút Tải lại dữ liệu -->
+            <div class="sidebar-item" onclick="forceRefresh()">
+                <div class="item-info">
+                    <i class="fas fa-sync-alt" style="color: var(--primary-blue)"></i>
+                    <span>Làm mới dữ liệu ngay</span>
+                </div>
+            </div>
+
+            <!-- Công tắc Dark Mode -->
+            <div class="sidebar-item" onclick="toggleDarkMode()">
+                <div class="item-info">
+                    <i class="fas fa-moon" style="color: #6c757d"></i>
+                    <span>Chế độ Ban đêm</span>
+                </div>
+                <div class="toggle-switch" id="dark-mode-toggle"></div>
+            </div>
+
+            <hr style="border:0; border-top:1px solid var(--border-color); margin: 15px 0;">
+            <div style="font-size:0.75rem; color:#adb5bd; font-weight:700; margin-bottom:10px; text-transform:uppercase;">Liên kết nhanh</div>
+
+<!-- Mạng xã hội & Quản lý -->
+            <a href="https://business.facebook.com/" target="_blank" class="sidebar-item" style="text-decoration: none;">
+                <div class="item-info">
+                    <i class="fab fa-meta" style="color: #0668E1"></i>
+                    <span style="color: var(--dark-text);">Meta Business Suite</span>
+                </div>
+            </a>
+
+            <a href="https://www.instagram.com/lolipop.camera/" target="_blank" class="sidebar-item" style="text-decoration: none;">
+                <div class="item-info">
+                    <i class="fab fa-instagram" style="color: #E1306C"></i>
+                    <span style="color: var(--dark-text);">Instagram</span>
+                </div>
+            </a>            
+            
+            <a href="https://www.facebook.com/lolipop.camera" target="_blank" class="sidebar-item" style="text-decoration: none;">
+                <div class="item-info">
+                    <i class="fab fa-facebook" style="color: #1877f2"></i>
+                    <span style="color: var(--dark-text);">Fanpage Facebook</span>
+                </div>
+            </a>
+        
+            <a href="https://zalo.me/" target="_blank" class="sidebar-item" style="text-decoration: none;">
+                <div class="item-info">
+                    <i class="fas fa-comment-dots" style="color: #0068ff"></i>
+                    <span style="color: var(--dark-text);">Zalo cửa hàng</span>
+                </div>
+            </a>
+
+
+        </div>
+    </div>
+
+    <header class="header"><i class="fas fa-bars" onclick="toggleSidebar()" style="cursor: pointer;"></i></i><span class="brand">Lolipop.camera</span><i class="far fa-user"></i></header>
 
     <main id="page-dash" class="page active">
         <div class="page-container">
@@ -252,18 +347,73 @@
             }
         }
 
-        function renderChart(chartData) {
+function renderChart(cd) {
             if(myChart) myChart.destroy();
+
+            let isUpTrend = cd.length > 1 ? cd[cd.length-1].rev >= cd[0].rev : true;
+            let stockColor = isUpTrend ? '#0ecb81' : '#f6465d'; 
+            let bgColor = isUpTrend ? 'rgba(14, 203, 129, 0.1)' : 'rgba(246, 70, 93, 0.1)';
+
             myChart = new Chart(document.getElementById('chartDash'), {
                 type: 'line',
                 data: {
-                    labels: chartData.map(m => m.name.replace('Tháng ','T')),
-                    datasets: [{ label: 'Doanh thu', data: chartData.map(m => m.rev), borderColor: '#007bff', tension: 0.4, fill: true, backgroundColor: 'rgba(0,123,255,0.05)', pointRadius: 3 }]
+                    labels: cd.map(m => m.name.replace('Tháng ','T')),
+                    datasets: [{ 
+                        label: 'Doanh thu', 
+                        data: cd.map(m => m.rev), 
+                        borderColor: stockColor, 
+                        tension: 0, 
+                        fill: true, 
+                        backgroundColor: bgColor, 
+                        pointRadius: 4,
+                        pointBackgroundColor: stockColor,
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        borderWidth: 2.5
+                    }]
                 },
-                // maintainAspectRatio: false giúp biểu đồ KHÔNG bị tràn dài xuống dưới
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleColor: '#adb5bd',
+                            bodyFont: { size: 14, weight: 'bold' },
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) { return '  ' + formatVND(context.raw); }
+                            }
+                        },
+                        // BỘ ĐỘNG CƠ ZOOM
+                        zoom: {
+                            pan: {
+                                enabled: true,
+                                mode: 'x', // Chỉ cho phép kéo sang 2 bên trái phải
+                            },
+                            zoom: {
+                                wheel: { enabled: true }, // Lăn chuột trên Laptop
+                                pinch: { enabled: true }, // Zoom bằng 2 ngón tay trên điện thoại
+                                mode: 'x', // Chỉ phóng to theo trục thời gian
+                            }
+                        }
+                    }, 
+                    scales: { 
+                        y: { display: false }, 
+                        x: { grid: { display: false }, ticks: { color: '#adb5bd', font: { size: 10 } } } 
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
             });
         }
+
 
         function renderPieChart() {
             if(pieChart) pieChart.destroy();
@@ -301,6 +451,64 @@
                 <h3 style="color: var(--dark-text); margin-bottom: 5px;">${bestBrand} đang dẫn đầu!</h3>
                 <p style="color: #adb5bd; font-size: 0.9rem;">Với <b>${maxCount} lượt thuê</b>, đây là dòng máy mang lại nhiều đơn hàng nhất.</p>
             `;
+        }
+
+        // --- LOGIC CHO SIDEBAR & TIỆN ÍCH ---
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar-menu');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.style.display = 'none', 300);
+            } else {
+                sidebar.classList.add('open');
+                overlay.style.display = 'block';
+                setTimeout(() => overlay.style.opacity = '1', 10);
+            }
+        }
+
+        // Tính năng: Tải lại dữ liệu ngay lập tức
+        function forceRefresh() {
+            toggleSidebar(); // Đóng menu
+            
+            // Hiện lại màn hình chờ (tuỳ chọn)
+            const splash = document.getElementById('splash-screen');
+            splash.style.display = 'flex';
+            splash.style.opacity = '1';
+            splash.querySelector('p').innerText = "ĐANG TẢI LẠI...";
+            
+            fetch('https://script.google.com/macros/s/AKfycbwfQOd6vL2fPk2qlYW2GtfW8HHeTpn51yp3AUb4gP0lh9taZQ5fgkqkQCwnlNMFfYjZ/exec')
+                .then(res => res.json())
+                .then(data => {
+                    renderData(data);
+                    // Ẩn màn hình chờ sau khi tải xong
+                    setTimeout(() => {
+                        splash.style.opacity = '0';
+                        setTimeout(() => splash.style.display = 'none', 800);
+                    }, 1000);
+                });
+        }
+
+        // Tính năng: Chế độ Ban đêm (Dark Mode)
+        let isDarkMode = false;
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            const toggleBtn = document.getElementById('dark-mode-toggle');
+            if(isDarkMode) {
+                document.body.classList.add('dark-theme');
+                toggleBtn.classList.add('on');
+            } else {
+                document.body.classList.remove('dark-theme');
+                toggleBtn.classList.remove('on');
+            }
+            
+            // Cập nhật lại màu chữ của biểu đồ nếu đang mở tab biểu đồ
+            if(myChart) {
+                myChart.options.scales.x.ticks.color = isDarkMode ? '#888' : '#666';
+                myChart.update();
+            }
         }
 
         // Link Apps Script
